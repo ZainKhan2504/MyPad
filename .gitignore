@@ -64,4 +64,4 @@ typings/
 node_modules
 
 #hide keys.js
-config/keys.js
+# config/keys.js
