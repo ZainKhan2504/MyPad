@@ -4,6 +4,7 @@ const mongoose     = require("mongoose");
 const cookieParser = require("cookie-parser");
 const session      = require("express-session");
 const passport     = require("passport");
+const path         = require("path");
 const app          = express();
 
 // Loads Models
@@ -15,6 +16,7 @@ require("./config/passport")(passport);
 // Loads Routes
 const index = require("./routes/index");
 const auth = require("./routes/auth");
+const stories = require("./routes/stories");
 
 // Loads Keys
 const keys = require("./config/keys");
@@ -57,9 +59,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// Set Static Folder
+app.use(express.static(path.join(__dirname, "public")));
+
 // Use Routes
 app.use("/", index);
 app.use("/auth", auth);
+app.use("/stories", stories);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
