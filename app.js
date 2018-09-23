@@ -1,14 +1,17 @@
-const express      = require('express');
-const exphbs       = require("express-handlebars");
-const mongoose     = require("mongoose");
+const express = require("express");
+const exphbs = require("express-handlebars");
+const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
+const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const session      = require("express-session");
-const passport     = require("passport");
-const path         = require("path");
-const app          = express();
+const session = require("express-session");
+const passport = require("passport");
+const path = require("path");
+const app = express();
 
 // Loads Models
 require("./models/User");
+require("./models/Story");
 
 // Passport Config
 require("./config/passport")(passport);
@@ -21,33 +24,56 @@ const stories = require("./routes/stories");
 // Loads Keys
 const keys = require("./config/keys");
 
+// Handlebars Helpers
+const { truncate, stripTags, formatDate, select } = require("./helpers/hbs");
+
 // Map Global Promises
-mongoose.Promise = global.Promise; 
+mongoose.Promise = global.Promise;
 
 // Mongoose Connect
-mongoose.connect(
-  keys.mongoURI,
-  {
-    useNewUrlParser: true
-  })
+mongoose
+  .connect(
+    keys.mongoURI,
+    {
+      useNewUrlParser: true
+    }
+  )
   .then(() => console.log("MongoDB Connected"))
   .catch(err => console.log(err));
 
+// Body Parser Middleware
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+// Method Override Middleware
+app.use(methodOverride("_method"));
+
 // Handlebars Middleware
-app.engine("handlebars", exphbs({
-  defaultLayout: "main"
-}));
+app.engine(
+  "handlebars",
+  exphbs({
+    helpers: {
+      truncate: truncate,
+      stripTags: stripTags,
+      formatDate: formatDate,
+      select: select
+    },
+    defaultLayout: "main"
+  })
+);
 app.set("view engine", "handlebars");
 
 // Cookie Parser Middleware
 app.use(cookieParser());
 
 // Express Session Middleware
-app.use(session({
-  secret: "secret",
-  resave: false,
-  saveUninitialized: false
-}));
+app.use(
+  session({
+    secret: "secret",
+    resave: false,
+    saveUninitialized: false
+  })
+);
 
 // Passport Middleware
 app.use(passport.initialize());
@@ -69,5 +95,5 @@ app.use("/stories", stories);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
-    console.log(`Server started on port ${port}`);
+  console.log(`Server started on port ${port}`);
 });
